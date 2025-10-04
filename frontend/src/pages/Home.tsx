@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
-import { PlaceholdersAndVanishInput } from '@/components/ui/placeholders-and-vanish-input';
 import RepoCard, { RepoData } from '@/components/RepoCard';
 import { usePreferences } from '@/contexts/PreferencesContext';
 import { Button } from '@/components/ui/button';

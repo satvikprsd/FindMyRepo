@@ -38,11 +38,90 @@ const hacktoberfestRepos: RepoData[] = [
   {
     name: 'awesome-for-beginners',
     description: 'A list of awesome beginners-friendly projects',
-    language: 'Markdown',
+    languages: ['Markdown'],
     stars: 38000,
-    lastCommit: '1 week ago',
-    tags: ['hacktoberfest', 'good first issue', 'curated-list'],
+    lastActivity: '1 week ago',
+    issues: 73,
+    charging: 'active',
+    owner: 'MunGell',
     url: 'https://github.com/MunGell/awesome-for-beginners',
+  },
+  {
+    name: 'open-sauced',
+    description: '🍕 This is a project to identify your next open source contribution',
+    languages: ['TypeScript', 'JavaScript'],
+    stars: 1200,
+    lastActivity: '3 days ago',
+    issues: 45,
+    charging: 'active',
+    owner: 'open-sauced',
+    url: 'https://github.com/open-sauced/open-sauced',
+  },
+  {
+    name: 'appwrite',
+    description: 'Build like a team of hundreds_',
+    languages: ['TypeScript', 'PHP', 'Dart'],
+    stars: 38000,
+    lastActivity: '1 day ago',
+    issues: 234,
+    charging: 'active',
+    owner: 'appwrite',
+    url: 'https://github.com/appwrite/appwrite',
+  },
+  {
+    name: 'supabase',
+    description: 'The open source Firebase alternative',
+    languages: ['TypeScript', 'Go', 'Rust'],
+    stars: 62000,
+    lastActivity: '4 hours ago',
+    issues: 567,
+    charging: 'active',
+    owner: 'supabase',
+    url: 'https://github.com/supabase/supabase',
+  },
+  {
+    name: 'novu',
+    description: 'The open-source notification infrastructure',
+    languages: ['TypeScript', 'JavaScript'],
+    stars: 25000,
+    lastActivity: '2 days ago',
+    issues: 123,
+    charging: 'active',
+    owner: 'novuhq',
+    url: 'https://github.com/novuhq/novu',
+  },
+  {
+    name: 'n8n',
+    description: 'Free and open source fair-code licensed workflow automation tool',
+    languages: ['TypeScript', 'JavaScript'],
+    stars: 42000,
+    lastActivity: '6 hours ago',
+    issues: 189,
+    charging: 'active',
+    owner: 'n8n-io',
+    url: 'https://github.com/n8n-io/n8n',
+  },
+  {
+    name: 'strapi',
+    description: 'The open source headless CMS',
+    languages: ['JavaScript', 'TypeScript'],
+    stars: 60000,
+    lastActivity: '1 day ago',
+    issues: 456,
+    charging: 'active',
+    owner: 'strapijs',
+    url: 'https://github.com/strapijs/strapi',
+  },
+  {
+    name: 'directus',
+    description: 'The Modern Data Stack 🐰 — Directus wraps any SQL database with a real-time GraphQL+REST API',
+    languages: ['TypeScript', 'Vue', 'JavaScript'],
+    stars: 25000,
+    lastActivity: '3 days ago',
+    issues: 234,
+    charging: 'active',
+    owner: 'directus',
+    url: 'https://github.com/directus/directus',
   },
 ];
 
@@ -51,36 +130,117 @@ const Hacktoberfest = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="container mx-auto max-w-7xl px-4 py-12">
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center">
-              <GitPullRequest className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-foreground">Hacktoberfest</h1>
-              <p className="text-muted-foreground">
-                Repositories participating in Hacktoberfest
-              </p>
-            </div>
-          </div>
-          <p className="text-lg text-muted-foreground max-w-3xl">
-            Join the annual celebration of open source! These repositories are actively participating 
-            in Hacktoberfest and are ready to review your pull requests. Perfect for earning your 
-            Hacktoberfest swag while contributing to meaningful projects.
+      <div className="container mx-auto max-w-7xl px-4 pb-12">
+        {/* Header */}
+        <div className="text-center mb-16 mt-12">
+          <h1 className="text-4xl font-bold text-foreground mb-4">Hacktoberfest</h1>
+          <p className="text-muted-foreground text-lg">
+            Repositories participating in Hacktoberfest
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 mb-12 max-w-4xl mx-auto">
-          {hacktoberfestRepos.map((repo, index) => (
-            <div 
-              key={repo.name} 
-              className="transform transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 animate-slide-up"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              <RepoCard repo={repo} isHighlight={false} />
+        {/* Main Content - 30-70 Split */}
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
+          {/* Filters Section - 30% */}
+          <div className="lg:col-span-3">
+            <div className="bg-card border border-border rounded-xl p-6 sticky top-24">
+              <h3 className="text-lg font-semibold text-foreground mb-4">Filters</h3>
+              
+              {/* Language Filter */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-foreground mb-3">Languages</h4>
+                <div className="space-y-2">
+                  {['JavaScript', 'HTML', 'Python', 'CSS', 'Markdown', 'TypeScript'].map((lang) => (
+                    <label key={lang} className="flex items-center space-x-2 cursor-pointer">
+                      <input type="checkbox" className="rounded border-border" defaultChecked />
+                      <span className="text-sm text-muted-foreground">{lang}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stars Filter */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-foreground mb-3">Star Count</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="stars" className="border-border" defaultChecked />
+                    <span className="text-sm text-muted-foreground">All</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="stars" className="border-border" />
+                    <span className="text-sm text-muted-foreground">Less than 50K</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="stars" className="border-border" />
+                    <span className="text-sm text-muted-foreground">50K - 200K</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="stars" className="border-border" />
+                    <span className="text-sm text-muted-foreground">200K+</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Activity Filter */}
+              <div className="mb-6">
+                <h4 className="text-sm font-medium text-foreground mb-3">Activity</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" className="rounded border-border" defaultChecked />
+                    <span className="text-sm text-muted-foreground">Active (recent commits)</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" className="rounded border-border" />
+                    <span className="text-sm text-muted-foreground">Medium activity</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="checkbox" className="rounded border-border" />
+                    <span className="text-sm text-muted-foreground">Low activity</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Clear Filters Button */}
+              <button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+                Clear Filters
+              </button>
             </div>
-          ))}
+          </div>
+
+          {/* Repositories Section - 70% */}
+          <div className="lg:col-span-7">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-foreground">
+                {hacktoberfestRepos.length} repositories found
+              </h2>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Sort by:</span>
+                <select className="bg-background border border-border rounded-lg px-3 py-1 text-sm">
+                  <option>Most Stars</option>
+                  <option>Recently Updated</option>
+                  <option>Most Issues</option>
+                  <option>Name</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 mb-12 max-w-4xl mx-auto">
+              {hacktoberfestRepos.map((repo, index) => (
+                <div 
+                  key={repo.name} 
+                  className={`transform transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 animate-slide-up cursor-pointer ${
+                    index === 1 ? 'animate-delay-150ms' : '' 
+                  } ${index === 2 ? 'animate-delay-300ms' : ''}`}
+                >
+                  <RepoCard 
+                    repo={repo} 
+                    isHighlight={false}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
