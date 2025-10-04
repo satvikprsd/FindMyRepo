@@ -5,12 +5,12 @@ import { Button } from './ui/button';
 export interface RepoData {
   name: string;
   description: string;
-  language: string;
+  languages: string[];
   stars: number;
-  lastCommit: string;
-  tags: string[];
+  lastActivity: string;
+  issues: number;
+  charging: 'active' | 'medium' | 'inactive';
   url: string;
-  issues?: number;
   owner?: string;
 }
 
@@ -19,6 +19,16 @@ interface RepoCardProps {
   isHighlight?: boolean;
   whyRecommended?: string;
 }
+
+// Charging status color mapping
+const getChargingColor = (status: 'active' | 'medium' | 'inactive') => {
+  const colors = {
+    'active': 'bg-green-500',
+    'medium': 'bg-yellow-500', 
+    'inactive': 'bg-red-500'
+  };
+  return colors[status];
+};
 
 // Language color mapping
 const getLanguageColor = (language: string) => {
@@ -46,7 +56,6 @@ const getLanguageColor = (language: string) => {
     'Angular': 'bg-red-500',
     'Svelte': 'bg-orange-500',
     'Markdown': 'bg-gray-500',
-    'Dockerfile': 'bg-blue-500',
     'YAML': 'bg-red-500',
     'JSON': 'bg-yellow-600',
     'XML': 'bg-orange-600',
@@ -89,7 +98,6 @@ const getLanguageColor = (language: string) => {
     'AutoHotkey': 'bg-green-500',
     'AutoIt': 'bg-green-600',
     'Batchfile': 'bg-gray-600',
-    'Dockerfile': 'bg-blue-500',
     'VimL': 'bg-green-500',
     'Zig': 'bg-orange-500',
     'Nix': 'bg-blue-500',
@@ -113,89 +121,75 @@ const getLanguageColor = (language: string) => {
 
 const RepoCard = ({ repo, isHighlight = false, whyRecommended }: RepoCardProps) => {
   return (
-    <article className={`group bg-card border border-border rounded-lg p-4 hover:border-primary/30 transition-all duration-200 ${isHighlight ? 'border-primary/40 bg-primary/5' : ''}`}>
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
+    <article className={`group bg-card border border-border rounded-lg p-6 hover:border-primary/30 transition-all duration-200 ${isHighlight ? 'border-primary/40 bg-primary/5' : ''}`}>
+      {/* Header with name and charging status */}
+      <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-3 mb-2">
             <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors truncate">
               {repo.owner ? `${repo.owner}/${repo.name}` : repo.name}
             </h3>
-            <Button 
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-primary flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={() => window.open(repo.url, '_blank')}
-            >
-              <ExternalLink className="h-3 w-3" />
-            </Button>
+            {/* Charging status indicator */}
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${getChargingColor(repo.charging)}`}></div>
+              <span className="text-xs font-medium text-muted-foreground capitalize">
+                {repo.charging}
+              </span>
+            </div>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
             {repo.description}
           </p>
         </div>
         
-        {/* Action buttons */}
-        <div className="flex items-center gap-2 ml-4">
-          <Button 
-            variant="outline"
-            size="sm"
-            className="h-8 px-3 text-xs border-border bg-transparent hover:bg-secondary text-muted-foreground hover:text-foreground"
-          >
-            <Star className="h-3 w-3 mr-1" />
-            Star
-          </Button>
-          {repo.issues && repo.issues > 0 && (
-            <Button 
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-xs border-pink-500/50 bg-transparent hover:bg-pink-500/10 text-pink-400 hover:text-pink-300"
-            >
-              <AlertCircle className="h-3 w-3 mr-1" />
-              Sponsor
-            </Button>
-          )}
-        </div>
+        <Button 
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+          onClick={() => window.open(repo.url, '_blank')}
+        >
+          <ExternalLink className="h-4 w-4" />
+        </Button>
       </div>
       
       {/* Recommendation reason */}
       {whyRecommended && (
-        <div className="bg-primary/5 border border-primary/20 p-3 rounded-md mb-3">
+        <div className="bg-primary/5 border border-primary/20 p-3 rounded-md mb-4">
           <p className="text-sm text-foreground font-medium">💡 Why recommended:</p>
           <p className="text-sm text-muted-foreground mt-1">{whyRecommended}</p>
         </div>
       )}
 
-      {/* Tags */}
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {repo.tags.map((tag) => (
-          <Badge key={tag} variant="secondary" className="text-xs bg-primary/10 text-primary hover:bg-primary/20 border-primary/20 px-2 py-1">
-            {tag}
-          </Badge>
+      {/* Languages */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {repo.languages.map((language) => (
+          <div key={language} className="flex items-center gap-1.5">
+            <div className={`w-2.5 h-2.5 rounded-full ${getLanguageColor(language)}`} />
+            <span className="text-xs text-muted-foreground">{language}</span>
+          </div>
         ))}
       </div>
       
       {/* Footer stats */}
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        {repo.language && (
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div className="flex items-center gap-4">
+          {/* Stars */}
           <div className="flex items-center gap-1.5">
-            <div className={`w-3 h-3 rounded-full ${getLanguageColor(repo.language)}`} />
-            <span>{repo.language}</span>
+            <Star className="h-4 w-4" />
+            <span>{repo.stars.toLocaleString()}</span>
           </div>
-        )}
-        <div className="flex items-center gap-1.5">
-          <Star className="h-3.5 w-3.5" />
-          <span>{repo.stars.toLocaleString()}</span>
-        </div>
-        {repo.issues !== undefined && (
+          
+          {/* Issues */}
           <div className="flex items-center gap-1.5">
-            <AlertCircle className="h-3.5 w-3.5" />
+            <AlertCircle className="h-4 w-4" />
             <span>{repo.issues}</span>
           </div>
-        )}
-        <div className="flex items-center gap-1.5 ml-auto">
-          <Clock className="h-3.5 w-3.5" />
-          <span>Updated {repo.lastCommit}</span>
+        </div>
+        
+        {/* Last activity */}
+        <div className="flex items-center gap-1.5">
+          <Clock className="h-4 w-4" />
+          <span>{repo.lastActivity}</span>
         </div>
       </div>
     </article>
