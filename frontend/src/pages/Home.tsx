@@ -6,6 +6,8 @@ import RepoCard, { RepoData } from '@/components/RepoCard';
 import { usePreferences } from '@/contexts/PreferencesContext';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles, TrendingUp, Users } from 'lucide-react';
+import ParticleHero from '@/components/ParticleHero';
+import AccentLines from '@/components/AccentLines';
 
 // Mock recommended repos - in production, these would come from an API
 const mockRecommendedRepos: RepoData[] = [
@@ -77,19 +79,23 @@ const Home = () => {
         {/* Gradient Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5"></div>
         
-        {/* Floating Geometric Shapes */}
-        <div className="absolute top-20 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-32 h-32 bg-primary/5 rounded-full blur-2xl animate-float animate-delay-1s"></div>
-        <div className="absolute bottom-40 left-20 w-16 h-16 bg-primary/15 rounded-full blur-lg animate-float animate-delay-2s"></div>
+        {/* Particle Effect */}
+        <ParticleHero />
+        
+        {/* Accent Lines */}
+        <AccentLines />
         
         <div className="container-modern relative z-10">
           <div className="max-w-4xl mx-auto text-center">
+            {/* Kicker */}
+            <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-4 animate-fade-in">
+              Introducing
+            </div>
+            
             {/* Main heading */}
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight animate-fade-in">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-foreground mb-6 leading-tight animate-fade-in">
               Find repositories that
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70 block">
-                match your passion
-              </span>
+              <span className="block">match your passion</span>
             </h1>
             
             <p className="text-lg sm:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed animate-slide-up">
@@ -114,14 +120,9 @@ const Home = () => {
               <div className="animate-slide-up">
                 <Button
                   onClick={() => navigate('/onboarding')}
-                  className="btn-primary group relative overflow-hidden"
+                  className="h-9 px-4 bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80 transition-colors duration-300"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <div className="relative flex items-center">
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Get Personalized Recommendations
-                    <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </div>
+                  Get Personalized Recommendations
                 </Button>
               </div>
             )}

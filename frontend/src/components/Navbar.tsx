@@ -17,7 +17,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo - Leftmost */}
           <Link to="/" className="flex items-center gap-2 group">
-            <span className="text-xl font-bold text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary/70 transition-all duration-300">
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors duration-300">
               OSS Discovery
             </span>
           </Link>
@@ -28,14 +28,13 @@ const Navbar = () => {
               <Link 
                 key={path}
                 to={path} 
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative overflow-hidden ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
                   isActive(path)
-                    ? 'text-primary bg-primary/10' 
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+                    ? 'text-foreground bg-secondary' 
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                 }`}
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/10 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
-                <span className="relative">{label}</span>
+                <span>{label}</span>
               </Link>
             ))}
           </div>
@@ -43,7 +42,7 @@ const Navbar = () => {
           {/* Mobile Menu Button - Rightmost */}
           <div className="md:hidden">
             <button 
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-colors duration-300"
               aria-label="Open mobile menu"
             >
               Menu
