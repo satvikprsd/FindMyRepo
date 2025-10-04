@@ -1,8 +1,9 @@
 import Navbar from '@/components/Navbar';
 import RepoCard, { RepoData } from '@/components/RepoCard';
-import { Sparkles } from 'lucide-react';
 
-const hiddenGemsRepos: RepoData[] = [
+// Combined repository data from all pages
+const allRepos: RepoData[] = [
+  // From Home page
   {
     name: 'first-contributions',
     description: 'Help beginners make their first open source contribution. This repository is perfect for newcomers to open source.',
@@ -124,19 +125,78 @@ const hiddenGemsRepos: RepoData[] = [
     url: 'https://github.com/tiangolo/fastapi',
     owner: 'tiangolo',
   },
+  
+  // From Personalized page
+  {
+    name: 'material-ui',
+    description: 'Ready-to-use foundational React components, free forever',
+    languages: ['TypeScript', 'JavaScript'],
+    stars: 92000,
+    lastActivity: '1 hour ago',
+    issues: 45,
+    charging: 'active',
+    owner: 'mui',
+    url: 'https://github.com/mui/material-ui',
+  },
+  {
+    name: 'storybook',
+    description: 'The UI component explorer. Develop, document, & test React, Vue, Angular, & more!',
+    languages: ['TypeScript', 'JavaScript'],
+    stars: 83000,
+    lastActivity: '5 hours ago',
+    issues: 67,
+    charging: 'active',
+    owner: 'storybookjs',
+    url: 'https://github.com/storybookjs/storybook',
+  },
+  {
+    name: 'react-hook-form',
+    description: 'React Hooks for form state management and validation',
+    languages: ['TypeScript', 'JavaScript'],
+    stars: 40000,
+    lastActivity: '2 days ago',
+    issues: 23,
+    charging: 'active',
+    owner: 'react-hook-form',
+    url: 'https://github.com/react-hook-form/react-hook-form',
+  },
+
+  // From Hacktoberfest page
+  {
+    name: 'public-apis',
+    description: 'A collective list of free APIs for use in software and web development',
+    languages: ['Python'],
+    stars: 280000,
+    lastActivity: '1 day ago',
+    issues: 156,
+    charging: 'active',
+    owner: 'public-apis',
+    url: 'https://github.com/public-apis/public-apis',
+  },
+  {
+    name: 'freeCodeCamp',
+    description: "freeCodeCamp.org's open-source codebase and curriculum",
+    languages: ['JavaScript', 'CSS'],
+    stars: 390000,
+    lastActivity: '5 hours ago',
+    issues: 234,
+    charging: 'active',
+    owner: 'freeCodeCamp',
+    url: 'https://github.com/freeCodeCamp/freeCodeCamp',
+  },
 ];
 
-const HiddenGems = () => {
+const AllRepos = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
       <div className="container mx-auto max-w-7xl px-4 pb-12">
-        {/* New Header */}
+        {/* Header */}
         <div className="text-center mb-16 mt-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">Hidden Gems</h1>
+          <h1 className="text-4xl font-bold text-foreground mb-4">All Repositories</h1>
           <p className="text-muted-foreground text-lg">
-            Discover quality projects with fewer than 1,000 stars
+            Explore all available repositories across different categories
           </p>
         </div>
 
@@ -151,7 +211,7 @@ const HiddenGems = () => {
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-foreground mb-3">Languages</h4>
                 <div className="space-y-2">
-                  {['Rust', 'JavaScript', 'TypeScript', 'Python', 'Go'].map((lang) => (
+                  {['JavaScript', 'TypeScript', 'Python', 'HTML', 'CSS', 'C++', 'CUDA', 'Cython', 'Markdown'].map((lang) => (
                     <label key={lang} className="flex items-center space-x-2 cursor-pointer">
                       <input type="checkbox" className="rounded border-border" defaultChecked />
                       <span className="text-sm text-muted-foreground">{lang}</span>
@@ -170,11 +230,19 @@ const HiddenGems = () => {
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input type="radio" name="stars" className="border-border" />
-                    <span className="text-sm text-muted-foreground">Less than 500</span>
+                    <span className="text-sm text-muted-foreground">Less than 50K</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input type="radio" name="stars" className="border-border" />
-                    <span className="text-sm text-muted-foreground">500 - 1000</span>
+                    <span className="text-sm text-muted-foreground">50K - 100K</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="stars" className="border-border" />
+                    <span className="text-sm text-muted-foreground">100K - 200K</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input type="radio" name="stars" className="border-border" />
+                    <span className="text-sm text-muted-foreground">200K+</span>
                   </label>
                 </div>
               </div>
@@ -209,7 +277,7 @@ const HiddenGems = () => {
           <div className="lg:col-span-7">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-foreground">
-                {hiddenGemsRepos.length} repositories found
+                {allRepos.length} repositories found
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Sort by:</span>
@@ -223,7 +291,7 @@ const HiddenGems = () => {
             </div>
 
             <div className="grid grid-cols-1 gap-6 mb-12 max-w-4xl mx-auto">
-              {hiddenGemsRepos.map((repo, index) => (
+              {allRepos.map((repo, index) => (
                 <div 
                   key={repo.name} 
                   className={`transform transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 animate-slide-up cursor-pointer ${
@@ -244,4 +312,4 @@ const HiddenGems = () => {
   );
 };
 
-export default HiddenGems;
+export default AllRepos;

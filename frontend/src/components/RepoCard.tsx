@@ -120,23 +120,26 @@ const getLanguageColor = (language: string) => {
 
 const RepoCard = ({ repo, isHighlight = false }: RepoCardProps) => {
   return (
-    <article className={`group bg-card border border-border rounded-lg p-5 hover:border-primary/30 transition-all duration-200 ${isHighlight ? 'border-primary/40 bg-primary/5' : ''}`}>
+    <article 
+      className={`group bg-card border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer ${isHighlight ? 'border-primary/40 bg-primary/5' : ''}`}
+      onClick={() => window.open(repo.url, '_blank')}
+    >
       {/* Header with name and charging status */}
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3 mb-4">
             <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors truncate">
               {repo.owner ? `${repo.owner}/${repo.name}` : repo.name}
             </h3>
             {/* Charging status indicator */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-full">
               <div className={`w-2 h-2 rounded-full ${getChargingColor(repo.charging)}`}></div>
-              <span className="text-xs font-medium text-muted-foreground capitalize">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 {repo.charging}
               </span>
             </div>
           </div>
-          <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mb-4 min-h-[2.5rem]">
             {repo.description}
           </p>
         </div>
@@ -145,7 +148,10 @@ const RepoCard = ({ repo, isHighlight = false }: RepoCardProps) => {
           variant="ghost"
           size="sm"
           className="h-8 w-8 p-0 text-muted-foreground hover:text-primary flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => window.open(repo.url, '_blank')}
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(repo.url, '_blank');
+          }}
         >
           <ExternalLink className="h-4 w-4" />
         </Button>
@@ -153,34 +159,35 @@ const RepoCard = ({ repo, isHighlight = false }: RepoCardProps) => {
 
       {/* Languages */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {repo.languages.map((language) => (
-          <div key={language} className="flex items-center gap-1.5">
-            <div className={`w-2.5 h-2.5 rounded-full ${getLanguageColor(language)}`} />
-            <span className="text-xs text-muted-foreground">{language}</span>
+        {repo.languages.slice(0, 3).map((language) => (
+          <div key={language} className="flex items-center gap-1.5 pl-1 pr-2 py-1.5 bg-muted/30 rounded-md">
+            <div className={`w-2 h-2 rounded-full ${getLanguageColor(language)}`} />
+            <span className="text-xs font-medium text-muted-foreground">{language}</span>
           </div>
         ))}
+        {repo.languages.length > 3 && (
+          <div className="pl-1 pr-2 py-1.5 bg-muted/20 rounded-md">
+            <span className="text-xs font-medium text-muted-foreground">+{repo.languages.length - 3}</span>
+          </div>
+        )}
       </div>
       
       {/* Footer stats */}
       <div className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-5">
-          {/* Stars */}
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <Star className="h-4 w-4" />
-            <span>{repo.stars.toLocaleString()} stars</span>
+            <span className="font-medium">{repo.stars.toLocaleString()} stars</span>
           </div>
-          
-          {/* Issues */}
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <AlertCircle className="h-4 w-4" />
-            <span>{repo.issues} issues</span>
+            <span className="font-medium">{repo.issues} issues</span>
           </div>
         </div>
         
-        {/* Last activity */}
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <Clock className="h-4 w-4" />
-          <span>Updated {repo.lastActivity}</span>
+          <span className="text-xs">Updated {repo.lastActivity}</span>
         </div>
       </div>
     </article>

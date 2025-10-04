@@ -6,28 +6,33 @@ const hacktoberfestRepos: RepoData[] = [
   {
     name: 'first-contributions',
     description: 'Help beginners make their first open source contribution',
-    language: 'JavaScript',
+    languages: ['JavaScript', 'HTML'],
     stars: 42000,
-    lastCommit: '2 days ago',
-    tags: ['hacktoberfest', 'good first issue', 'documentation'],
+    lastActivity: '2 days ago',
+    issues: 8,
+    charging: 'active',
+    owner: 'firstcontributions',
     url: 'https://github.com/firstcontributions/first-contributions',
   },
   {
     name: 'public-apis',
     description: 'A collective list of free APIs for use in software and web development',
-    language: 'Python',
+    languages: ['Python'],
     stars: 280000,
-    lastCommit: '1 day ago',
-    tags: ['hacktoberfest', 'documentation', 'api'],
+    lastActivity: '1 day ago',
+    issues: 156,
+    charging: 'active',
+    owner: 'public-apis',
     url: 'https://github.com/public-apis/public-apis',
   },
   {
     name: 'freeCodeCamp',
     description: "freeCodeCamp.org's open-source codebase and curriculum",
-    language: 'JavaScript',
+    languages: ['JavaScript', 'CSS'],
     stars: 390000,
-    lastCommit: '5 hours ago',
-    tags: ['hacktoberfest', 'good first issue', 'education'],
+    lastActivity: '5 hours ago',
+    issues: 234,
+    charging: 'active',
     url: 'https://github.com/freeCodeCamp/freeCodeCamp',
   },
   {
@@ -66,9 +71,15 @@ const Hacktoberfest = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {hacktoberfestRepos.map((repo) => (
-            <RepoCard key={repo.name} repo={repo} />
+        <div className="grid grid-cols-1 gap-6 mb-12 max-w-4xl mx-auto">
+          {hacktoberfestRepos.map((repo, index) => (
+            <div 
+              key={repo.name} 
+              className="transform transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 animate-slide-up"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <RepoCard repo={repo} isHighlight={false} />
+            </div>
           ))}
         </div>
       </div>

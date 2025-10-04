@@ -7,7 +7,7 @@ const Navbar = () => {
 
   const navItems = [
     { path: '/hidden-gems', label: 'Hidden Gems' },
-    { path: '/personalized', label: 'Personalized' },
+    { path: '/all-repos', label: 'All Repos' },
     { path: '/hacktoberfest', label: 'Hacktoberfest' },
   ];
 
@@ -17,7 +17,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo - Leftmost */}
           <Link to="/" className="flex items-center gap-2 group">
-            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors duration-300">
+            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors duration-300 code-text">
               OSS Discovery
             </span>
           </Link>
@@ -34,7 +34,7 @@ const Navbar = () => {
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
                 }`}
               >
-                <span>{label}</span>
+                <span className="code-text">{label}</span>
               </Link>
             ))}
           </div>
