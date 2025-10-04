@@ -27,8 +27,8 @@ const mockRecommendedRepos: RepoData[] = [
     description: 'A list of awesome beginners-friendly projects. Curated list of projects that welcome new contributors.',
     languages: ['Markdown', 'JavaScript'],
     stars: 38000,
-    lastActivity: '1 week ago',
-    issues: 5,
+    lastActivity: '2 months ago',
+    issues: 73,
     charging: 'medium',
     url: 'https://github.com/MunGell/awesome-for-beginners',
     owner: 'MunGell',
@@ -146,12 +146,10 @@ const Home = () => {
                 <span className="text-sm font-medium text-primary uppercase tracking-wide">Featured</span>
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-                {hasCompletedOnboarding ? 'Recommended For You' : 'Popular Repositories'}
+                Popular Repositories
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                {hasCompletedOnboarding 
-                  ? 'Curated based on your preferences and skill level'
-                  : 'Start your open source journey with these trusted projects'}
+                Start your open source journey with these trusted projects
               </p>
             </div>
           </div>
@@ -167,7 +165,6 @@ const Home = () => {
                 <RepoCard 
                   repo={repo} 
                   isHighlight={index === 0}
-                  whyRecommended={hasCompletedOnboarding ? `Matches your ${preferences?.languages?.[0] || 'JavaScript'} skills and ${preferences?.interestAreas?.[0] || 'web development'} interests` : undefined}
                 />
               </div>
             ))}

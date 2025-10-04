@@ -17,7 +17,6 @@ export interface RepoData {
 interface RepoCardProps {
   repo: RepoData;
   isHighlight?: boolean;
-  whyRecommended?: string;
 }
 
 // Charging status color mapping
@@ -119,11 +118,11 @@ const getLanguageColor = (language: string) => {
   return colors[language] || 'bg-gray-500';
 };
 
-const RepoCard = ({ repo, isHighlight = false, whyRecommended }: RepoCardProps) => {
+const RepoCard = ({ repo, isHighlight = false }: RepoCardProps) => {
   return (
-    <article className={`group bg-card border border-border rounded-lg p-6 hover:border-primary/30 transition-all duration-200 ${isHighlight ? 'border-primary/40 bg-primary/5' : ''}`}>
+    <article className={`group bg-card border border-border rounded-lg p-5 hover:border-primary/30 transition-all duration-200 ${isHighlight ? 'border-primary/40 bg-primary/5' : ''}`}>
       {/* Header with name and charging status */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-2">
             <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors truncate">
@@ -151,14 +150,6 @@ const RepoCard = ({ repo, isHighlight = false, whyRecommended }: RepoCardProps) 
           <ExternalLink className="h-4 w-4" />
         </Button>
       </div>
-      
-      {/* Recommendation reason */}
-      {whyRecommended && (
-        <div className="bg-primary/5 border border-primary/20 p-3 rounded-md mb-4">
-          <p className="text-sm text-foreground font-medium">💡 Why recommended:</p>
-          <p className="text-sm text-muted-foreground mt-1">{whyRecommended}</p>
-        </div>
-      )}
 
       {/* Languages */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -171,25 +162,25 @@ const RepoCard = ({ repo, isHighlight = false, whyRecommended }: RepoCardProps) 
       </div>
       
       {/* Footer stats */}
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center gap-5">
           {/* Stars */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             <Star className="h-4 w-4" />
-            <span>{repo.stars.toLocaleString()}</span>
+            <span>{repo.stars.toLocaleString()} stars</span>
           </div>
           
           {/* Issues */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             <AlertCircle className="h-4 w-4" />
-            <span>{repo.issues}</span>
+            <span>{repo.issues} issues</span>
           </div>
         </div>
         
         {/* Last activity */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 text-muted-foreground">
           <Clock className="h-4 w-4" />
-          <span>{repo.lastActivity}</span>
+          <span>Updated {repo.lastActivity}</span>
         </div>
       </div>
     </article>
