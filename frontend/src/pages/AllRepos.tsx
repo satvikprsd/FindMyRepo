@@ -185,36 +185,202 @@ const allRepos: RepoData[] = [
     owner: 'freeCodeCamp',
     url: 'https://github.com/freeCodeCamp/freeCodeCamp',
   },
+  {
+    name: 'hacktoberfest-projects',
+    description: 'A curated list of Hacktoberfest projects for beginners to contribute to open source.',
+    languages: ['Markdown', 'JavaScript', 'Python'],
+    stars: 1500,
+    lastActivity: '5 days ago',
+    issues: 23,
+    charging: 'active',
+    url: 'https://github.com/hacktoberfest/hacktoberfest-projects',
+    owner: 'hacktoberfest',
+  },
+  {
+    name: 'GSOC-Contributors',
+    description: 'Google Summer of Code contributors and their projects. Find amazing open source projects to contribute to.',
+    languages: ['Python', 'JavaScript', 'Java'],
+    stars: 850,
+    lastActivity: '1 week ago',
+    issues: 15,
+    charging: 'medium',
+    url: 'https://github.com/gsoc/GSOC-Contributors',
+    owner: 'gsoc',
+  },
+  {
+    name: 'hacktoberfest-swag',
+    description: 'List of companies giving out swag for Hacktoberfest participation.',
+    languages: ['Markdown'],
+    stars: 3200,
+    lastActivity: '3 days ago',
+    issues: 45,
+    charging: 'active',
+    url: 'https://github.com/crweiner/hacktoberfest-swag',
+    owner: 'crweiner',
+  },
+  {
+    name: 'gsoc-proposals',
+    description: 'Google Summer of Code project proposals and ideas for students.',
+    languages: ['Markdown', 'Python', 'C++'],
+    stars: 1200,
+    lastActivity: '2 weeks ago',
+    issues: 8,
+    charging: 'medium',
+    url: 'https://github.com/gsoc/gsoc-proposals',
+    owner: 'gsoc',
+  },
 ];
 
 const AllRepos = () => {
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['JavaScript', 'TypeScript', 'Python', 'Rust', 'Go']);
-  const [starRange, setStarRange] = useState<string>('all');
-  const [selectedActivities, setSelectedActivities] = useState<string[]>(['active', 'medium']);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string[]>([]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedPrograms, setSelectedPrograms] = useState<string[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<string>('all');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTechStack, setSelectedTechStack] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('stars');
 
   // Filter and sort repositories
   const filteredRepos = useMemo(() => {
     let filtered = allRepos.filter(repo => {
+      // Difficulty filter
+      const matchesDifficulty = selectedDifficulty.length === 0 || selectedDifficulty.some(difficulty => {
+        if (difficulty === 'beginner') {
+          return repo.stars < 5000 || repo.name.toLowerCase().includes('beginner') || 
+                 repo.description.toLowerCase().includes('beginner');
+        }
+        if (difficulty === 'intermediate') {
+          return repo.stars >= 5000 && repo.stars < 50000;
+        }
+        if (difficulty === 'advanced') {
+          return repo.stars >= 50000 || repo.charging === 'active';
+        }
+        return false;
+      });
+      
       // Language filter
-      const hasSelectedLanguage = repo.languages.some(lang => selectedLanguages.includes(lang));
+      const hasSelectedLanguage = selectedLanguages.length === 0 || repo.languages.some(lang => selectedLanguages.includes(lang));
       
-      // Star range filter
-      let matchesStarRange = true;
-      if (starRange === 'less-1k') {
-        matchesStarRange = repo.stars < 1000;
-      } else if (starRange === '1k-10k') {
-        matchesStarRange = repo.stars >= 1000 && repo.stars < 10000;
-      } else if (starRange === '10k-50k') {
-        matchesStarRange = repo.stars >= 10000 && repo.stars < 50000;
-      } else if (starRange === '50k+') {
-        matchesStarRange = repo.stars >= 50000;
-      }
+      // Program filter
+      const hasSelectedProgram = selectedPrograms.length === 0 || selectedPrograms.some(program => {
+        if (program === 'Hacktoberfest') {
+          return repo.name.toLowerCase().includes('hacktoberfest') || 
+                 repo.description.toLowerCase().includes('hacktoberfest');
+        }
+        if (program === 'GSOC') {
+          return repo.name.toLowerCase().includes('gsoc') || 
+                 repo.description.toLowerCase().includes('google summer of code') ||
+                 repo.description.toLowerCase().includes('gsoc');
+        }
+        return false;
+      });
       
-      // Activity filter
-      const matchesActivity = selectedActivities.includes(repo.charging);
+      // Activity filter (by last commit timeframe)
+      const matchesActivity = selectedActivity === 'all' || (() => {
+        // Parse relative time strings like "2 hours ago", "1 week ago", "3 months ago"
+        const parseRelativeTime = (timeString: string): number => {
+          const cleanString = timeString.toLowerCase().replace(' ago', '').trim();
+          const parts = cleanString.split(' ');
+          
+          if (parts.length !== 2) return 0;
+          
+          const value = parseInt(parts[0]);
+          const unit = parts[1];
+          
+          if (isNaN(value)) return 0;
+          
+          switch (unit) {
+            case 'minute':
+            case 'minutes':
+              return value * 60 * 1000;
+            case 'hour':
+            case 'hours':
+              return value * 60 * 60 * 1000;
+            case 'day':
+            case 'days':
+              return value * 24 * 60 * 60 * 1000;
+            case 'week':
+            case 'weeks':
+              return value * 7 * 24 * 60 * 60 * 1000;
+            case 'month':
+            case 'months':
+              return value * 30 * 24 * 60 * 60 * 1000; // Approximate month as 30 days
+            case 'year':
+            case 'years':
+              return value * 365 * 24 * 60 * 60 * 1000; // Approximate year as 365 days
+            default:
+              return 0;
+          }
+        };
+        
+        const timeAgo = parseRelativeTime(repo.lastActivity);
+        const now = new Date().getTime();
+        const repoTime = now - timeAgo;
+        
+        switch (selectedActivity) {
+          case '1-month':
+            return timeAgo <= 30 * 24 * 60 * 60 * 1000;
+          case '3-months':
+            return timeAgo <= 90 * 24 * 60 * 60 * 1000;
+          case '6-months':
+            return timeAgo <= 180 * 24 * 60 * 60 * 1000;
+          case '6-months+':
+            return timeAgo > 180 * 24 * 60 * 60 * 1000;
+          default:
+            return true;
+        }
+      })();
       
-      return hasSelectedLanguage && matchesStarRange && matchesActivity;
+      // Tags filter (simulated based on repo characteristics)
+      const hasSelectedTag = selectedTags.length === 0 || selectedTags.some(tag => {
+        if (tag === 'good first issue') {
+          return repo.stars < 10000 || repo.description.toLowerCase().includes('beginner');
+        }
+        if (tag === 'help wanted') {
+          return repo.issues > 10;
+        }
+        if (tag === 'documentation') {
+          return repo.languages.includes('Markdown') || repo.description.toLowerCase().includes('docs');
+        }
+        if (tag === 'hacktoberfest') {
+          return repo.name.toLowerCase().includes('hacktoberfest');
+        }
+        if (tag === 'UI/UX') {
+          return repo.languages.some(lang => ['HTML', 'CSS', 'JavaScript'].includes(lang));
+        }
+        if (tag === 'testing') {
+          return repo.description.toLowerCase().includes('test') || repo.languages.includes('JavaScript');
+        }
+        return false;
+      });
+      
+      // Tech Stack filter (simulated based on languages)
+      const hasSelectedTechStack = selectedTechStack.length === 0 || selectedTechStack.some(tech => {
+        if (tech === 'React') {
+          return repo.languages.includes('JavaScript') && repo.description.toLowerCase().includes('react');
+        }
+        if (tech === 'Node.js') {
+          return repo.languages.includes('JavaScript') && repo.description.toLowerCase().includes('node');
+        }
+        if (tech === 'Flask') {
+          return repo.languages.includes('Python') && repo.description.toLowerCase().includes('flask');
+        }
+        if (tech === 'Django') {
+          return repo.languages.includes('Python') && repo.description.toLowerCase().includes('django');
+        }
+        if (tech === 'Next.js') {
+          return repo.languages.includes('TypeScript') && repo.description.toLowerCase().includes('next');
+        }
+        if (tech === 'TensorFlow') {
+          return repo.languages.includes('Python') && repo.description.toLowerCase().includes('tensorflow');
+        }
+        if (tech === 'PyTorch') {
+          return repo.languages.includes('Python') && repo.description.toLowerCase().includes('pytorch');
+        }
+        return false;
+      });
+      
+      return matchesDifficulty && hasSelectedLanguage && hasSelectedProgram && matchesActivity && hasSelectedTag && hasSelectedTechStack;
     });
 
     // Sort repositories
@@ -235,7 +401,15 @@ const AllRepos = () => {
     });
 
     return filtered;
-  }, [selectedLanguages, starRange, selectedActivities, sortBy]);
+  }, [selectedDifficulty, selectedLanguages, selectedPrograms, selectedActivity, selectedTags, selectedTechStack, sortBy]);
+
+  const handleDifficultyChange = (difficulty: string, checked: boolean) => {
+    if (checked) {
+      setSelectedDifficulty(prev => [...prev, difficulty]);
+    } else {
+      setSelectedDifficulty(prev => prev.filter(diff => diff !== difficulty));
+    }
+  };
 
   const handleLanguageChange = (language: string, checked: boolean) => {
     if (checked) {
@@ -245,18 +419,37 @@ const AllRepos = () => {
     }
   };
 
-  const handleActivityChange = (activity: string, checked: boolean) => {
+  const handleProgramChange = (program: string, checked: boolean) => {
     if (checked) {
-      setSelectedActivities(prev => [...prev, activity]);
+      setSelectedPrograms(prev => [...prev, program]);
     } else {
-      setSelectedActivities(prev => prev.filter(act => act !== activity));
+      setSelectedPrograms(prev => prev.filter(prog => prog !== program));
+    }
+  };
+
+  const handleTagChange = (tag: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTags(prev => [...prev, tag]);
+    } else {
+      setSelectedTags(prev => prev.filter(t => t !== tag));
+    }
+  };
+
+  const handleTechStackChange = (tech: string, checked: boolean) => {
+    if (checked) {
+      setSelectedTechStack(prev => [...prev, tech]);
+    } else {
+      setSelectedTechStack(prev => prev.filter(t => t !== tech));
     }
   };
 
   const clearFilters = () => {
-    setSelectedLanguages(['JavaScript', 'TypeScript', 'Python', 'Rust', 'Go']);
-    setStarRange('all');
-    setSelectedActivities(['active', 'medium']);
+    setSelectedDifficulty([]);
+    setSelectedLanguages([]);
+    setSelectedPrograms([]);
+    setSelectedActivity('all');
+    setSelectedTags([]);
+    setSelectedTechStack([]);
     setSortBy('stars');
   };
 
@@ -266,9 +459,9 @@ const AllRepos = () => {
       
       <div className="container mx-auto max-w-7xl px-4 pb-12">
         {/* Header */}
-        <div className="text-center mb-16 mt-12">
-          <h1 className="text-4xl font-bold text-foreground mb-4">All Repositories</h1>
-          <p className="text-muted-foreground text-lg">
+        <div className="text-center mb-8 mt-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">All Repositories</h1>
+          <p className="text-muted-foreground">
             Explore all available repositories across different categories
           </p>
         </div>
@@ -277,15 +470,46 @@ const AllRepos = () => {
         <div className="grid grid-cols-1 lg:grid-cols-10 gap-8">
           {/* Filters Section - 30% */}
           <div className="lg:col-span-3">
-            <div className="bg-card border border-border rounded-xl p-6 sticky top-24">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Filters</h3>
+            <div className="bg-card border border-border rounded-xl p-6 sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-hide hover:scrollbar-show transition-all duration-300">
+              <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-foreground">Filters</h3>
+                <button 
+                  onClick={clearFilters}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Clear All
+                </button>
+              </div>
               
-              {/* Language Filter */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-foreground mb-3">Languages</h4>
+              {/* Difficulty Filter */}
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-3">By Difficulty</h4>
                 <div className="space-y-2">
-                  {['JavaScript', 'TypeScript', 'Python', 'Rust', 'Go', 'HTML', 'CSS', 'C++', 'CUDA', 'Cython', 'Markdown'].map((lang) => (
-                    <label key={lang} className="flex items-center space-x-2 cursor-pointer">
+                  {[
+                    { key: 'beginner', label: 'Beginner-friendly' },
+                    { key: 'intermediate', label: 'Intermediate' },
+                    { key: 'advanced', label: 'Advanced' }
+                  ].map(({ key, label }) => (
+                    <label key={key} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-border" 
+                        checked={selectedDifficulty.includes(key)}
+                        onChange={(e) => handleDifficultyChange(key, e.target.checked)}
+                      />
+                      <span className="text-sm text-muted-foreground">{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Programming Language Filter */}
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-3">By Programming Language</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {['Python', 'JavaScript', 'TypeScript', 'Java', 'C++', 'Go', 'Rust', 'HTML/CSS'].map((lang) => (
+                    <label key={lang} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-secondary/50 transition-colors">
                       <input 
                         type="checkbox" 
                         className="rounded border-border" 
@@ -298,109 +522,85 @@ const AllRepos = () => {
                 </div>
               </div>
 
-              {/* Stars Filter */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-foreground mb-3">Star Count</h4>
+              {/* Programs Filter */}
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-3">By Programs</h4>
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="stars" 
-                      className="border-border" 
-                      value="all"
-                      checked={starRange === 'all'}
-                      onChange={(e) => setStarRange(e.target.value)}
-                    />
-                    <span className="text-sm text-muted-foreground">All</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="stars" 
-                      className="border-border" 
-                      value="less-1k"
-                      checked={starRange === 'less-1k'}
-                      onChange={(e) => setStarRange(e.target.value)}
-                    />
-                    <span className="text-sm text-muted-foreground">Less than 1K</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="stars" 
-                      className="border-border" 
-                      value="1k-10k"
-                      checked={starRange === '1k-10k'}
-                      onChange={(e) => setStarRange(e.target.value)}
-                    />
-                    <span className="text-sm text-muted-foreground">1K - 10K</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="stars" 
-                      className="border-border" 
-                      value="10k-50k"
-                      checked={starRange === '10k-50k'}
-                      onChange={(e) => setStarRange(e.target.value)}
-                    />
-                    <span className="text-sm text-muted-foreground">10K - 50K</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="radio" 
-                      name="stars" 
-                      className="border-border" 
-                      value="50k+"
-                      checked={starRange === '50k+'}
-                      onChange={(e) => setStarRange(e.target.value)}
-                    />
-                    <span className="text-sm text-muted-foreground">50K+</span>
-                  </label>
+                  {['Hacktoberfest', 'GSOC'].map((program) => (
+                    <label key={program} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-border" 
+                        checked={selectedPrograms.includes(program)}
+                        onChange={(e) => handleProgramChange(program, e.target.checked)}
+                      />
+                      <span className="text-sm text-muted-foreground">{program}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
               {/* Activity Filter */}
-              <div className="mb-6">
-                <h4 className="text-sm font-medium text-foreground mb-3">Activity</h4>
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-3">By Activity</h4>
                 <div className="space-y-2">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="rounded border-border" 
-                      checked={selectedActivities.includes('active')}
-                      onChange={(e) => handleActivityChange('active', e.target.checked)}
-                    />
-                    <span className="text-sm text-muted-foreground">Active (recent commits)</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="rounded border-border" 
-                      checked={selectedActivities.includes('medium')}
-                      onChange={(e) => handleActivityChange('medium', e.target.checked)}
-                    />
-                    <span className="text-sm text-muted-foreground">Medium activity</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="rounded border-border" 
-                      checked={selectedActivities.includes('inactive')}
-                      onChange={(e) => handleActivityChange('inactive', e.target.checked)}
-                    />
-                    <span className="text-sm text-muted-foreground">Low activity</span>
-                  </label>
+                  {[
+                    { key: 'all', label: 'All' },
+                    { key: '1-month', label: 'Within 1 month' },
+                    { key: '3-months', label: 'Within 3 months' },
+                    { key: '6-months', label: 'Within 6 months' },
+                    { key: '6-months+', label: 'More than 6 months ago' }
+                  ].map(({ key, label }) => (
+                    <label key={key} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+                      <input 
+                        type="radio" 
+                        name="activity" 
+                        className="border-border" 
+                        checked={selectedActivity === key}
+                        onChange={() => setSelectedActivity(key)}
+                      />
+                      <span className="text-sm text-muted-foreground">{label}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 
-              {/* Clear Filters Button */}
-              <button 
-                onClick={clearFilters}
-                className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                Clear Filters
-              </button>
+              {/* Tags / Contribution Type Filter */}
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-3">By Tags / Contribution Type</h4>
+                <div className="grid grid-cols-1 gap-2">
+                  {['good first issue', 'help wanted', 'documentation', 'hacktoberfest', 'UI/UX', 'testing'].map((tag) => (
+                    <label key={tag} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-border" 
+                        checked={selectedTags.includes(tag)}
+                        onChange={(e) => handleTagChange(tag, e.target.checked)}
+                      />
+                      <span className="text-sm text-muted-foreground capitalize">{tag}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tech Stack / Framework Filter */}
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-3">By Tech Stack / Framework</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {['React', 'Next.js', 'Flask', 'Django', 'Node.js', 'TensorFlow', 'PyTorch'].map((tech) => (
+                    <label key={tech} className="flex items-center space-x-2 cursor-pointer p-2 rounded-lg hover:bg-secondary/50 transition-colors">
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-border" 
+                        checked={selectedTechStack.includes(tech)}
+                        onChange={(e) => handleTechStackChange(tech, e.target.checked)}
+                      />
+                      <span className="text-sm text-muted-foreground">{tech}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              </div>
             </div>
           </div>
 

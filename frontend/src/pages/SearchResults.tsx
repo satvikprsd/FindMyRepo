@@ -358,7 +358,7 @@ const SearchResults = () => {
   };
 
   return (
-    <div className="h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-auto">
       <Navbar />
       
       {/* Background Effects */}

@@ -6,9 +6,8 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   const navItems = [
-    { path: '/hidden-gems', label: 'Hidden Gems' },
     { path: '/all-repos', label: 'All Repos' },
-    { path: '/hacktoberfest', label: 'Hacktoberfest' },
+    { path: '/hidden-gems', label: 'Hidden Gems' },
   ];
 
   return (

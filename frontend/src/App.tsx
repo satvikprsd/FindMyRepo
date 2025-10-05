@@ -9,7 +9,6 @@ import Onboarding from "./pages/Onboarding";
 import SearchResults from "./pages/SearchResults";
 import HiddenGems from "./pages/HiddenGems";
 import AllRepos from "./pages/AllRepos";
-import Hacktoberfest from "./pages/Hacktoberfest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,7 +23,6 @@ const AppRoutes = () => {
       <Route path="/search" element={<SearchResults />} />
       <Route path="/hidden-gems" element={<HiddenGems />} />
       <Route path="/all-repos" element={<AllRepos />} />
-      <Route path="/hacktoberfest" element={<Hacktoberfest />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

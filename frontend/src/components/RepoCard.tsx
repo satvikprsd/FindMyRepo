@@ -119,6 +119,41 @@ const getLanguageColor = (language: string) => {
 };
 
 const RepoCard = ({ repo, isHighlight = false }: RepoCardProps) => {
+  const formatLastActivity = (lastActivity: string) => {
+    try {
+      // Check if it's an ISO date format
+      if (lastActivity.includes('T') && lastActivity.includes('Z')) {
+        const date = new Date(lastActivity);
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+        
+        if (diffInSeconds < 60) {
+          return 'Just now';
+        } else if (diffInSeconds < 3600) {
+          const minutes = Math.floor(diffInSeconds / 60);
+          return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        } else if (diffInSeconds < 86400) {
+          const hours = Math.floor(diffInSeconds / 3600);
+          return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        } else if (diffInSeconds < 2592000) {
+          const days = Math.floor(diffInSeconds / 86400);
+          return `${days} day${days > 1 ? 's' : ''} ago`;
+        } else if (diffInSeconds < 31536000) {
+          const months = Math.floor(diffInSeconds / 2592000);
+          return `${months} month${months > 1 ? 's' : ''} ago`;
+        } else {
+          const years = Math.floor(diffInSeconds / 31536000);
+          return `${years} year${years > 1 ? 's' : ''} ago`;
+        }
+      }
+      // If it's already in a readable format, return as is
+      return lastActivity;
+    } catch (error) {
+      // If parsing fails, return the original string
+      return lastActivity;
+    }
+  };
+
   return (
     <article 
       className={`group bg-card border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-lg transition-all duration-300 cursor-pointer ${isHighlight ? 'border-primary/40 bg-primary/5' : ''}`}
@@ -129,7 +164,18 @@ const RepoCard = ({ repo, isHighlight = false }: RepoCardProps) => {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-4">
             <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-              {repo.owner ? `${repo.owner}/${repo.name}` : repo.name}
+              {(() => {
+                try {
+                  const url = new URL(repo.url);
+                  const pathParts = url.pathname.split('/').filter(part => part);
+                  if (pathParts.length >= 2) {
+                    return `${pathParts[0]}/${pathParts[1]}`;
+                  }
+                  return repo.name;
+                } catch {
+                  return repo.name;
+                }
+              })()}
             </h3>
             {/* Charging status indicator */}
             <div className="flex items-center gap-1.5 px-2 py-1 bg-muted/50 rounded-full">
@@ -187,7 +233,7 @@ const RepoCard = ({ repo, isHighlight = false }: RepoCardProps) => {
         
         <div className="flex items-center gap-1.5 text-muted-foreground">
           <Clock className="h-4 w-4" />
-          <span className="text-xs">Updated {repo.lastActivity}</span>
+          <span className="text-xs">Updated {formatLastActivity(repo.lastActivity)}</span>
         </div>
       </div>
     </article>
