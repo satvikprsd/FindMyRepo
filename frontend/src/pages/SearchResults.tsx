@@ -320,20 +320,17 @@ const SearchResults = () => {
     if (query) {
       setIsLoading(true);
       
-      // Always show loading for 5 seconds minimum for initial search
-      const searchPromise = searchRepositories(query);
-      
-      Promise.all([
-        searchPromise,
-        new Promise(resolve => setTimeout(resolve, 5000)) // Always wait 5 seconds
-      ]).then(([results]) => {
-        setSearchResults(results);
-        setIsLoading(false);
-      }).catch((error) => {
-        console.error('Search error:', error);
-        setSearchResults([]);
-        setIsLoading(false);
-      });
+      // Search without artificial delay
+      searchRepositories(query)
+        .then((results) => {
+          setSearchResults(results);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          console.error('Search error:', error);
+          setSearchResults([]);
+          setIsLoading(false);
+        });
     } else {
       setSearchResults([]);
     }
@@ -344,17 +341,8 @@ const SearchResults = () => {
       setIsLoading(true);
       
       try {
-        // Always show loading for 5 seconds minimum
-        const minLoadingTime = 5000; // 5 seconds
-        const searchPromise = searchRepositories(currentQuery);
-        
-        // Wait for both search completion and minimum loading time
-        await Promise.all([
-          searchPromise,
-          new Promise(resolve => setTimeout(resolve, minLoadingTime))
-        ]);
-        
-        const results = await searchPromise;
+        // Search without artificial delay
+        const results = await searchRepositories(currentQuery);
         setSearchResults(results);
         setIsLoading(false);
         
