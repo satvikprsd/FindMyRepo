@@ -231,10 +231,55 @@ const allRepositories: RepoData[] = [
   },
 ];
 
-// Search function to find related repositories
-const searchRepositories = (query: string): RepoData[] => {
+// Search function to find related repositories from external API
+const searchRepositories = async (query: string): Promise<RepoData[]> => {
   if (!query.trim()) return [];
   
+  try {
+    // Make API call to external search service
+    const response = await fetch('http://10.7.3.122:8000/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query: query.trim() })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Transform API response to our RepoData format
+    if (data.success && data.results && Array.isArray(data.results)) {
+      return data.results.map((repo: any) => ({
+        name: repo.name || 'Unknown',
+        description: repo.description || 'No description available',
+        languages: Array.isArray(repo.languages) && repo.languages.length > 0 ? repo.languages : 
+                  repo.language ? [repo.language] : 
+                  repo.topics && repo.topics.length > 0 ? [repo.topics[0]] : ['JavaScript'],
+        stars: parseInt(repo.stars || '0') || 0,
+        lastActivity: repo.updated_at || 'Unknown',
+        issues: parseInt(repo.open_issues || '0') || 0,
+        charging: repo.open_issues > 0 ? 'active' : 'medium',
+        url: repo.url || '#',
+        owner: repo.full_name ? repo.full_name.split('/')[0] : 'Unknown'
+      }));
+    }
+    
+    // Fallback to local search if API doesn't return expected format
+    return fallbackLocalSearch(query);
+    
+  } catch (error) {
+    console.error('Error fetching from external search API:', error);
+    // Fallback to local search if API is unavailable
+    return fallbackLocalSearch(query);
+  }
+};
+
+// Fallback local search function
+const fallbackLocalSearch = (query: string): RepoData[] => {
   const searchTerm = query.toLowerCase();
   
   return allRepositories.filter(repo => {
@@ -276,34 +321,51 @@ const SearchResults = () => {
       setIsLoading(true);
       
       // Always show loading for 5 seconds minimum for initial search
-      setTimeout(() => {
-        const results = searchRepositories(query);
+      const searchPromise = searchRepositories(query);
+      
+      Promise.all([
+        searchPromise,
+        new Promise(resolve => setTimeout(resolve, 5000)) // Always wait 5 seconds
+      ]).then(([results]) => {
         setSearchResults(results);
         setIsLoading(false);
-      }, 5000); // Always wait 5 seconds
+      }).catch((error) => {
+        console.error('Search error:', error);
+        setSearchResults([]);
+        setIsLoading(false);
+      });
     } else {
       setSearchResults([]);
     }
   }, [query]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (currentQuery.trim()) {
       setIsLoading(true);
       
-      // Always show loading for 5 seconds minimum
-      const startTime = Date.now();
-      const minLoadingTime = 5000; // 5 seconds
-      
-      // Perform search immediately but wait for minimum loading time
-      const results = searchRepositories(currentQuery);
-      
-      setTimeout(() => {
+      try {
+        // Always show loading for 5 seconds minimum
+        const minLoadingTime = 5000; // 5 seconds
+        const searchPromise = searchRepositories(currentQuery);
+        
+        // Wait for both search completion and minimum loading time
+        await Promise.all([
+          searchPromise,
+          new Promise(resolve => setTimeout(resolve, minLoadingTime))
+        ]);
+        
+        const results = await searchPromise;
         setSearchResults(results);
         setIsLoading(false);
         
         // Update URL state
         navigate('/search', { state: { query: currentQuery } });
-      }, minLoadingTime); // Always wait 5 seconds
+        
+      } catch (error) {
+        console.error('Search error:', error);
+        setSearchResults([]);
+        setIsLoading(false);
+      }
     }
   };
 
