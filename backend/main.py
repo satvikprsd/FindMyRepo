@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -71,7 +71,27 @@ class PaginatedResponse(BaseModel):
     success: bool
     data: List[Repository]
     pagination: Dict[str, Any]
+    filters_applied: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
+
+class RepositoryFilters(BaseModel):
+    """Filters for repository queries"""
+    language: Optional[str] = Field(None, description="Filter by primary programming language (case insensitive)")
+    languages: Optional[List[str]] = Field(None, description="Filter by any of these languages")
+    topics: Optional[List[str]] = Field(None, description="Filter by any of these topics")
+    min_stars: Optional[int] = Field(None, ge=0, description="Minimum number of stars")
+    max_stars: Optional[int] = Field(None, ge=0, description="Maximum number of stars")
+    min_forks: Optional[int] = Field(None, ge=0, description="Minimum number of forks")
+    max_forks: Optional[int] = Field(None, ge=0, description="Maximum number of forks")
+    license: Optional[str] = Field(None, description="Filter by license type")
+    has_issues: Optional[bool] = Field(None, description="Filter repositories with/without issues enabled")
+    has_wiki: Optional[bool] = Field(None, description="Filter repositories with/without wiki enabled")
+    is_underrated: Optional[bool] = Field(None, description="Filter underrated repositories")
+    is_gsoc: Optional[bool] = Field(None, description="Filter Google Summer of Code repositories")
+    is_hacktoberfest: Optional[bool] = Field(None, description="Filter Hacktoberfest repositories")
+    has_good_first_issues: Optional[bool] = Field(None, description="Filter repositories with good first issues")
+    name_contains: Optional[str] = Field(None, description="Filter repositories where name contains this text")
+    description_contains: Optional[str] = Field(None, description="Filter repositories where description contains this text")
 
 # Global service instances (in production, consider using dependency injection)
 gemini_service = GeminiService()
