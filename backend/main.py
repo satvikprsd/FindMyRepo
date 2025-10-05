@@ -194,43 +194,162 @@ async def search_repositories(request: SearchRequest):
 
 @app.get("/allrepos", response_model=PaginatedResponse)
 async def get_all_repositories(
-    page: int = 1,
-    limit: int = 20,
-    sort_by: str = "stars",
-    sort_order: str = "desc"
+    page: int = Query(1, ge=1, description="Page number (starts from 1)"),
+    limit: int = Query(20, ge=1, le=100, description="Number of items per page (max 100)"),
+    sort_by: str = Query("stars", description="Sort by field (stars, forks, updated_at, created_at, name)"),
+    sort_order: str = Query("desc", description="Sort order (asc or desc)"),
+    # Filter parameters
+    language: Optional[str] = Query(None, description="Filter by primary programming language"),
+    languages: Optional[str] = Query(None, description="Filter by languages (comma-separated)"),
+    topics: Optional[str] = Query(None, description="Filter by topics (comma-separated)"),
+    min_stars: Optional[int] = Query(None, ge=0, description="Minimum number of stars"),
+    max_stars: Optional[int] = Query(None, ge=0, description="Maximum number of stars"),
+    min_forks: Optional[int] = Query(None, ge=0, description="Minimum number of forks"),
+    max_forks: Optional[int] = Query(None, ge=0, description="Maximum number of forks"),
+    license: Optional[str] = Query(None, description="Filter by license type"),
+    has_issues: Optional[bool] = Query(None, description="Filter repositories with/without issues enabled"),
+    has_wiki: Optional[bool] = Query(None, description="Filter repositories with/without wiki enabled"),
+    is_underrated: Optional[bool] = Query(None, description="Filter underrated repositories"),
+    is_gsoc: Optional[bool] = Query(None, description="Filter Google Summer of Code repositories"),
+    is_hacktoberfest: Optional[bool] = Query(None, description="Filter Hacktoberfest repositories"),
+    has_good_first_issues: Optional[bool] = Query(None, description="Filter repositories with good first issues"),
+    name_contains: Optional[str] = Query(None, description="Filter repositories where name contains this text"),
+    description_contains: Optional[str] = Query(None, description="Filter repositories where description contains this text")
 ):
     """
-    Get all repositories with pagination and sorting.
+    Get all repositories with comprehensive filtering, pagination and sorting.
     
-    Parameters:
-    - page: Page number (starts from 1)
-    - limit: Number of items per page (max 100)
-    - sort_by: Sort by field (stars, forks, updated_at, created_at, name)
-    - sort_order: Sort order (asc or desc)
+    This endpoint supports extensive filtering options to help you find specific types of repositories.
+    All text filters are case-insensitive. Multiple values can be provided for languages and topics
+    using comma-separated strings.
     
-    Returns paginated list of all repositories from Weaviate.
+    Examples:
+    - `/allrepos?language=python&min_stars=1000` - Python repos with 1000+ stars
+    - `/allrepos?topics=machine-learning,ai&has_wiki=true` - ML repos with wikis
+    - `/allrepos?languages=python,javascript&is_underrated=true` - Underrated Python/JS repos
+    - `/allrepos?name_contains=framework&min_forks=100` - Framework repos with 100+ forks
     """
     try:
         # Validate parameters
-        if page < 1:
-            raise HTTPException(status_code=400, detail="Page must be >= 1")
-        if limit < 1 or limit > 100:
-            raise HTTPException(status_code=400, detail="Limit must be between 1 and 100")
         if sort_by not in ["stars", "forks", "updated_at", "created_at", "name"]:
             raise HTTPException(status_code=400, detail="Invalid sort_by field")
         if sort_order not in ["asc", "desc"]:
             raise HTTPException(status_code=400, detail="Sort order must be 'asc' or 'desc'")
         
-        logger.info(f"Fetching repositories: page={page}, limit={limit}, sort_by={sort_by}, sort_order={sort_order}")
+        # Parse comma-separated values
+        languages_list = [lang.strip().lower() for lang in languages.split(',')] if languages else None
+        topics_list = [topic.strip().lower() for topic in topics.split(',')] if topics else None
+        
+        # Build filters applied info for response
+        filters_applied = {}
+        if language:
+            filters_applied['language'] = language.lower()
+        if languages_list:
+            filters_applied['languages'] = languages_list
+        if topics_list:
+            filters_applied['topics'] = topics_list
+        if min_stars is not None:
+            filters_applied['min_stars'] = min_stars
+        if max_stars is not None:
+            filters_applied['max_stars'] = max_stars
+        if min_forks is not None:
+            filters_applied['min_forks'] = min_forks
+        if max_forks is not None:
+            filters_applied['max_forks'] = max_forks
+        if license:
+            filters_applied['license'] = license
+        if has_issues is not None:
+            filters_applied['has_issues'] = has_issues
+        if has_wiki is not None:
+            filters_applied['has_wiki'] = has_wiki
+        if is_underrated is not None:
+            filters_applied['is_underrated'] = is_underrated
+        if is_gsoc is not None:
+            filters_applied['is_gsoc'] = is_gsoc
+        if is_hacktoberfest is not None:
+            filters_applied['is_hacktoberfest'] = is_hacktoberfest
+        if has_good_first_issues is not None:
+            filters_applied['has_good_first_issues'] = has_good_first_issues
+        if name_contains:
+            filters_applied['name_contains'] = name_contains
+        if description_contains:
+            filters_applied['description_contains'] = description_contains
+        
+        logger.info(f"Fetching repositories: page={page}, limit={limit}, sort_by={sort_by}, sort_order={sort_order}, filters={filters_applied}")
         
         # Calculate offset
         offset = (page - 1) * limit
         
-        # Get collection
+        # Get collection and import Filter
         collection = weaviate_service.client.collections.get("Repos")
+        from weaviate.classes.query import Filter, Sort
         
-        # First, get total count
-        total_count_response = collection.aggregate.over_all(total_count=True)
+        # Build filter conditions
+        filter_conditions = []
+        
+        # Language filters
+        if language:
+            filter_conditions.append(Filter.by_property("language").equal(language.lower()))
+        
+        if languages_list:
+            filter_conditions.append(Filter.by_property("languages").contains_any(languages_list))
+        
+        # Topic filters
+        if topics_list:
+            filter_conditions.append(Filter.by_property("topics").contains_any(topics_list))
+        
+        # Star filters
+        if min_stars is not None:
+            filter_conditions.append(Filter.by_property("stars").greater_or_equal(min_stars))
+        if max_stars is not None:
+            filter_conditions.append(Filter.by_property("stars").less_or_equal(max_stars))
+        
+        # Fork filters
+        if min_forks is not None:
+            filter_conditions.append(Filter.by_property("forks").greater_or_equal(min_forks))
+        if max_forks is not None:
+            filter_conditions.append(Filter.by_property("forks").less_or_equal(max_forks))
+        
+        # License filter
+        if license:
+            filter_conditions.append(Filter.by_property("license").equal(license))
+        
+        # Boolean filters
+        if has_issues is not None:
+            filter_conditions.append(Filter.by_property("has_issues").equal(has_issues))
+        if has_wiki is not None:
+            filter_conditions.append(Filter.by_property("has_wiki").equal(has_wiki))
+        if is_underrated is not None:
+            filter_conditions.append(Filter.by_property("is_underrated").equal(is_underrated))
+        if is_gsoc is not None:
+            filter_conditions.append(Filter.by_property("is_gsoc").equal(is_gsoc))
+        if is_hacktoberfest is not None:
+            filter_conditions.append(Filter.by_property("is_hacktoberfest").equal(is_hacktoberfest))
+        if has_good_first_issues is not None:
+            filter_conditions.append(Filter.by_property("has_good_first_issues").equal(has_good_first_issues))
+        
+        # Text search filters
+        if name_contains:
+            filter_conditions.append(Filter.by_property("name").like(f"*{name_contains.lower()}*"))
+        if description_contains:
+            filter_conditions.append(Filter.by_property("description").like(f"*{description_contains.lower()}*"))
+        
+        # Combine all filter conditions with AND
+        combined_filter = None
+        if filter_conditions:
+            combined_filter = filter_conditions[0]
+            for condition in filter_conditions[1:]:
+                combined_filter = combined_filter & condition
+        
+        # Get total count (with filters if applied)
+        if combined_filter:
+            total_count_response = collection.aggregate.over_all(
+                filters=combined_filter,
+                total_count=True
+            )
+        else:
+            total_count_response = collection.aggregate.over_all(total_count=True)
+        
         total_count = total_count_response.total_count
         
         # Calculate pagination info
@@ -238,25 +357,28 @@ async def get_all_repositories(
         has_next = page < total_pages
         has_prev = page > 1
         
-        # Import Sort from weaviate
-        from weaviate.classes.query import Sort
-        
         # Build sort configuration
         sort_ascending = sort_order == "asc"
         sort_config = Sort.by_property(sort_by, ascending=sort_ascending)
         
-        # Query repositories with pagination and sorting
-        response = collection.query.fetch_objects(
-            limit=limit,
-            offset=offset,
-            sort=sort_config,
-            return_properties=[
+        # Query repositories with filters, pagination and sorting
+        query_params = {
+            'limit': limit,
+            'offset': offset,
+            'sort': sort_config,
+            'return_properties': [
                 "name", "full_name", "description", "url", "homepage",
                 "language", "languages", "topics", "stars", "forks",
                 "open_issues", "license", "has_issues", "has_wiki",
-                "created_at", "updated_at"
+                "created_at", "updated_at", "is_underrated", "is_gsoc",
+                "is_hacktoberfest", "has_good_first_issues"
             ]
-        )
+        }
+        
+        if combined_filter:
+            query_params['filters'] = combined_filter
+        
+        response = collection.query.fetch_objects(**query_params)
         
         # Format results
         repositories = []
@@ -306,12 +428,13 @@ async def get_all_repositories(
             "sort_order": sort_order
         }
         
-        logger.info(f"Successfully retrieved {len(repositories)} repositories (page {page} of {total_pages})")
+        logger.info(f"Successfully retrieved {len(repositories)} repositories (page {page} of {total_pages}, {total_count} total with filters)")
         
         return PaginatedResponse(
             success=True,
             data=repositories,
-            pagination=pagination_info
+            pagination=pagination_info,
+            filters_applied=filters_applied if filters_applied else None
         )
         
     except HTTPException:
@@ -323,6 +446,7 @@ async def get_all_repositories(
             success=False,
             data=[],
             pagination={},
+            filters_applied=None,
             error=f"Failed to fetch repositories: {str(e)}"
         )
 
