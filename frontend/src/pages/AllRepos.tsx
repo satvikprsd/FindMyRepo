@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import RepoCard, { RepoData } from '@/components/RepoCard';
 
@@ -187,6 +188,78 @@ const allRepos: RepoData[] = [
 ];
 
 const AllRepos = () => {
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['JavaScript', 'TypeScript', 'Python', 'Rust', 'Go']);
+  const [starRange, setStarRange] = useState<string>('all');
+  const [selectedActivities, setSelectedActivities] = useState<string[]>(['active', 'medium']);
+  const [sortBy, setSortBy] = useState<string>('stars');
+
+  // Filter and sort repositories
+  const filteredRepos = useMemo(() => {
+    let filtered = allRepos.filter(repo => {
+      // Language filter
+      const hasSelectedLanguage = repo.languages.some(lang => selectedLanguages.includes(lang));
+      
+      // Star range filter
+      let matchesStarRange = true;
+      if (starRange === 'less-1k') {
+        matchesStarRange = repo.stars < 1000;
+      } else if (starRange === '1k-10k') {
+        matchesStarRange = repo.stars >= 1000 && repo.stars < 10000;
+      } else if (starRange === '10k-50k') {
+        matchesStarRange = repo.stars >= 10000 && repo.stars < 50000;
+      } else if (starRange === '50k+') {
+        matchesStarRange = repo.stars >= 50000;
+      }
+      
+      // Activity filter
+      const matchesActivity = selectedActivities.includes(repo.charging);
+      
+      return hasSelectedLanguage && matchesStarRange && matchesActivity;
+    });
+
+    // Sort repositories
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'stars':
+          return b.stars - a.stars;
+        case 'recent':
+          const activityOrder = { active: 3, medium: 2, inactive: 1 };
+          return activityOrder[b.charging] - activityOrder[a.charging];
+        case 'issues':
+          return b.issues - a.issues;
+        case 'name':
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [selectedLanguages, starRange, selectedActivities, sortBy]);
+
+  const handleLanguageChange = (language: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLanguages(prev => [...prev, language]);
+    } else {
+      setSelectedLanguages(prev => prev.filter(lang => lang !== language));
+    }
+  };
+
+  const handleActivityChange = (activity: string, checked: boolean) => {
+    if (checked) {
+      setSelectedActivities(prev => [...prev, activity]);
+    } else {
+      setSelectedActivities(prev => prev.filter(act => act !== activity));
+    }
+  };
+
+  const clearFilters = () => {
+    setSelectedLanguages(['JavaScript', 'TypeScript', 'Python', 'Rust', 'Go']);
+    setStarRange('all');
+    setSelectedActivities(['active', 'medium']);
+    setSortBy('stars');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -211,9 +284,14 @@ const AllRepos = () => {
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-foreground mb-3">Languages</h4>
                 <div className="space-y-2">
-                  {['JavaScript', 'TypeScript', 'Python', 'HTML', 'CSS', 'C++', 'CUDA', 'Cython', 'Markdown'].map((lang) => (
+                  {['JavaScript', 'TypeScript', 'Python', 'Rust', 'Go', 'HTML', 'CSS', 'C++', 'CUDA', 'Cython', 'Markdown'].map((lang) => (
                     <label key={lang} className="flex items-center space-x-2 cursor-pointer">
-                      <input type="checkbox" className="rounded border-border" defaultChecked />
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-border" 
+                        checked={selectedLanguages.includes(lang)}
+                        onChange={(e) => handleLanguageChange(lang, e.target.checked)}
+                      />
                       <span className="text-sm text-muted-foreground">{lang}</span>
                     </label>
                   ))}
@@ -225,24 +303,59 @@ const AllRepos = () => {
                 <h4 className="text-sm font-medium text-foreground mb-3">Star Count</h4>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="stars" className="border-border" defaultChecked />
+                    <input 
+                      type="radio" 
+                      name="stars" 
+                      className="border-border" 
+                      value="all"
+                      checked={starRange === 'all'}
+                      onChange={(e) => setStarRange(e.target.value)}
+                    />
                     <span className="text-sm text-muted-foreground">All</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="stars" className="border-border" />
-                    <span className="text-sm text-muted-foreground">Less than 50K</span>
+                    <input 
+                      type="radio" 
+                      name="stars" 
+                      className="border-border" 
+                      value="less-1k"
+                      checked={starRange === 'less-1k'}
+                      onChange={(e) => setStarRange(e.target.value)}
+                    />
+                    <span className="text-sm text-muted-foreground">Less than 1K</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="stars" className="border-border" />
-                    <span className="text-sm text-muted-foreground">50K - 100K</span>
+                    <input 
+                      type="radio" 
+                      name="stars" 
+                      className="border-border" 
+                      value="1k-10k"
+                      checked={starRange === '1k-10k'}
+                      onChange={(e) => setStarRange(e.target.value)}
+                    />
+                    <span className="text-sm text-muted-foreground">1K - 10K</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="stars" className="border-border" />
-                    <span className="text-sm text-muted-foreground">100K - 200K</span>
+                    <input 
+                      type="radio" 
+                      name="stars" 
+                      className="border-border" 
+                      value="10k-50k"
+                      checked={starRange === '10k-50k'}
+                      onChange={(e) => setStarRange(e.target.value)}
+                    />
+                    <span className="text-sm text-muted-foreground">10K - 50K</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="stars" className="border-border" />
-                    <span className="text-sm text-muted-foreground">200K+</span>
+                    <input 
+                      type="radio" 
+                      name="stars" 
+                      className="border-border" 
+                      value="50k+"
+                      checked={starRange === '50k+'}
+                      onChange={(e) => setStarRange(e.target.value)}
+                    />
+                    <span className="text-sm text-muted-foreground">50K+</span>
                   </label>
                 </div>
               </div>
@@ -252,22 +365,40 @@ const AllRepos = () => {
                 <h4 className="text-sm font-medium text-foreground mb-3">Activity</h4>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-border" defaultChecked />
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-border" 
+                      checked={selectedActivities.includes('active')}
+                      onChange={(e) => handleActivityChange('active', e.target.checked)}
+                    />
                     <span className="text-sm text-muted-foreground">Active (recent commits)</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-border" />
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-border" 
+                      checked={selectedActivities.includes('medium')}
+                      onChange={(e) => handleActivityChange('medium', e.target.checked)}
+                    />
                     <span className="text-sm text-muted-foreground">Medium activity</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-border" />
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-border" 
+                      checked={selectedActivities.includes('inactive')}
+                      onChange={(e) => handleActivityChange('inactive', e.target.checked)}
+                    />
                     <span className="text-sm text-muted-foreground">Low activity</span>
                   </label>
                 </div>
               </div>
 
               {/* Clear Filters Button */}
-              <button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+              <button 
+                onClick={clearFilters}
+                className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
                 Clear Filters
               </button>
             </div>
@@ -277,21 +408,26 @@ const AllRepos = () => {
           <div className="lg:col-span-7">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-foreground">
-                {allRepos.length} repositories found
+                {filteredRepos.length} repositories found
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Sort by:</span>
-                <select className="bg-background border border-border rounded-lg px-3 py-1 text-sm">
-                  <option>Most Stars</option>
-                  <option>Recently Updated</option>
-                  <option>Most Issues</option>
-                  <option>Name</option>
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-background border border-border rounded-lg px-3 py-1 text-sm"
+                  aria-label="Sort repositories"
+                >
+                  <option value="stars">Most Stars</option>
+                  <option value="recent">Recently Updated</option>
+                  <option value="issues">Most Issues</option>
+                  <option value="name">Name</option>
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6 mb-12 max-w-4xl mx-auto">
-              {allRepos.map((repo, index) => (
+              {filteredRepos.map((repo, index) => (
                 <div 
                   key={repo.name} 
                   className={`transform transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 animate-slide-up cursor-pointer ${

@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import RepoCard, { RepoData } from '@/components/RepoCard';
 import { Sparkles } from 'lucide-react';
@@ -127,6 +128,75 @@ const hiddenGemsRepos: RepoData[] = [
 ];
 
 const HiddenGems = () => {
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['Rust', 'JavaScript', 'TypeScript', 'Python', 'Go']);
+  const [starRange, setStarRange] = useState<string>('all');
+  const [selectedActivities, setSelectedActivities] = useState<string[]>(['active']);
+  const [sortBy, setSortBy] = useState<string>('stars');
+
+  // Filter and sort repositories
+  const filteredRepos = useMemo(() => {
+    let filtered = hiddenGemsRepos.filter(repo => {
+      // Language filter
+      const hasSelectedLanguage = repo.languages.some(lang => selectedLanguages.includes(lang));
+      
+      // Star range filter
+      let matchesStarRange = true;
+      if (starRange === 'less-500') {
+        matchesStarRange = repo.stars < 500;
+      } else if (starRange === '500-1000') {
+        matchesStarRange = repo.stars >= 500 && repo.stars < 1000;
+      }
+      
+      // Activity filter
+      const matchesActivity = selectedActivities.includes(repo.charging);
+      
+      return hasSelectedLanguage && matchesStarRange && matchesActivity;
+    });
+
+    // Sort repositories
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'stars':
+          return b.stars - a.stars;
+        case 'recent':
+          // Simple sorting by activity - active first
+          const activityOrder = { active: 3, medium: 2, inactive: 1 };
+          return activityOrder[b.charging] - activityOrder[a.charging];
+        case 'issues':
+          return b.issues - a.issues;
+        case 'name':
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [selectedLanguages, starRange, selectedActivities, sortBy]);
+
+  const handleLanguageChange = (language: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLanguages(prev => [...prev, language]);
+    } else {
+      setSelectedLanguages(prev => prev.filter(lang => lang !== language));
+    }
+  };
+
+  const handleActivityChange = (activity: string, checked: boolean) => {
+    if (checked) {
+      setSelectedActivities(prev => [...prev, activity]);
+    } else {
+      setSelectedActivities(prev => prev.filter(act => act !== activity));
+    }
+  };
+
+  const clearFilters = () => {
+    setSelectedLanguages(['Rust', 'JavaScript', 'TypeScript', 'Python', 'Go']);
+    setStarRange('all');
+    setSelectedActivities(['active']);
+    setSortBy('stars');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -153,7 +223,12 @@ const HiddenGems = () => {
                 <div className="space-y-2">
                   {['Rust', 'JavaScript', 'TypeScript', 'Python', 'Go'].map((lang) => (
                     <label key={lang} className="flex items-center space-x-2 cursor-pointer">
-                      <input type="checkbox" className="rounded border-border" defaultChecked />
+                      <input 
+                        type="checkbox" 
+                        className="rounded border-border" 
+                        checked={selectedLanguages.includes(lang)}
+                        onChange={(e) => handleLanguageChange(lang, e.target.checked)}
+                      />
                       <span className="text-sm text-muted-foreground">{lang}</span>
                     </label>
                   ))}
@@ -165,15 +240,36 @@ const HiddenGems = () => {
                 <h4 className="text-sm font-medium text-foreground mb-3">Star Count</h4>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="stars" className="border-border" defaultChecked />
+                    <input 
+                      type="radio" 
+                      name="stars" 
+                      className="border-border" 
+                      value="all"
+                      checked={starRange === 'all'}
+                      onChange={(e) => setStarRange(e.target.value)}
+                    />
                     <span className="text-sm text-muted-foreground">All</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="stars" className="border-border" />
+                    <input 
+                      type="radio" 
+                      name="stars" 
+                      className="border-border" 
+                      value="less-500"
+                      checked={starRange === 'less-500'}
+                      onChange={(e) => setStarRange(e.target.value)}
+                    />
                     <span className="text-sm text-muted-foreground">Less than 500</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="radio" name="stars" className="border-border" />
+                    <input 
+                      type="radio" 
+                      name="stars" 
+                      className="border-border" 
+                      value="500-1000"
+                      checked={starRange === '500-1000'}
+                      onChange={(e) => setStarRange(e.target.value)}
+                    />
                     <span className="text-sm text-muted-foreground">500 - 1000</span>
                   </label>
                 </div>
@@ -184,22 +280,40 @@ const HiddenGems = () => {
                 <h4 className="text-sm font-medium text-foreground mb-3">Activity</h4>
                 <div className="space-y-2">
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-border" defaultChecked />
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-border" 
+                      checked={selectedActivities.includes('active')}
+                      onChange={(e) => handleActivityChange('active', e.target.checked)}
+                    />
                     <span className="text-sm text-muted-foreground">Active (recent commits)</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-border" />
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-border" 
+                      checked={selectedActivities.includes('medium')}
+                      onChange={(e) => handleActivityChange('medium', e.target.checked)}
+                    />
                     <span className="text-sm text-muted-foreground">Medium activity</span>
                   </label>
                   <label className="flex items-center space-x-2 cursor-pointer">
-                    <input type="checkbox" className="rounded border-border" />
+                    <input 
+                      type="checkbox" 
+                      className="rounded border-border" 
+                      checked={selectedActivities.includes('inactive')}
+                      onChange={(e) => handleActivityChange('inactive', e.target.checked)}
+                    />
                     <span className="text-sm text-muted-foreground">Low activity</span>
                   </label>
                 </div>
               </div>
 
               {/* Clear Filters Button */}
-              <button className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
+              <button 
+                onClick={clearFilters}
+                className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+              >
                 Clear Filters
               </button>
             </div>
@@ -209,21 +323,26 @@ const HiddenGems = () => {
           <div className="lg:col-span-7">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-foreground">
-                {hiddenGemsRepos.length} repositories found
+                {filteredRepos.length} repositories found
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Sort by:</span>
-                <select className="bg-background border border-border rounded-lg px-3 py-1 text-sm">
-                  <option>Most Stars</option>
-                  <option>Recently Updated</option>
-                  <option>Most Issues</option>
-                  <option>Name</option>
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-background border border-border rounded-lg px-3 py-1 text-sm"
+                  aria-label="Sort repositories"
+                >
+                  <option value="stars">Most Stars</option>
+                  <option value="recent">Recently Updated</option>
+                  <option value="issues">Most Issues</option>
+                  <option value="name">Name</option>
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6 mb-12 max-w-4xl mx-auto">
-              {hiddenGemsRepos.map((repo, index) => (
+              {filteredRepos.map((repo, index) => (
                 <div 
                   key={repo.name} 
                   className={`transform transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 animate-slide-up cursor-pointer ${

@@ -18,7 +18,7 @@ const Navbar = () => {
           {/* Logo - Leftmost */}
           <Link to="/" className="flex items-center gap-2 group">
             <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider group-hover:text-foreground transition-colors duration-300 code-text">
-              OSS Discovery
+              FindMy Repo
             </span>
           </Link>
           

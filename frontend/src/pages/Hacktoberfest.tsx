@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import Navbar from '@/components/Navbar';
 import RepoCard, { RepoData } from '@/components/RepoCard';
 import { GitPullRequest } from 'lucide-react';
@@ -126,6 +127,76 @@ const hacktoberfestRepos: RepoData[] = [
 ];
 
 const Hacktoberfest = () => {
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(['JavaScript', 'TypeScript', 'Python', 'Rust', 'Go']);
+  const [starRange, setStarRange] = useState<string>('all');
+  const [selectedActivities, setSelectedActivities] = useState<string[]>(['active', 'medium']);
+  const [sortBy, setSortBy] = useState<string>('stars');
+
+  // Filter and sort repositories
+  const filteredRepos = useMemo(() => {
+    let filtered = hacktoberfestRepos.filter(repo => {
+      // Language filter
+      const hasSelectedLanguage = repo.languages.some(lang => selectedLanguages.includes(lang));
+      
+      // Star range filter
+      let matchesStarRange = true;
+      if (starRange === 'less-1k') {
+        matchesStarRange = repo.stars < 1000;
+      } else if (starRange === '1k-10k') {
+        matchesStarRange = repo.stars >= 1000 && repo.stars < 10000;
+      } else if (starRange === '10k+') {
+        matchesStarRange = repo.stars >= 10000;
+      }
+      
+      // Activity filter
+      const matchesActivity = selectedActivities.includes(repo.charging);
+      
+      return hasSelectedLanguage && matchesStarRange && matchesActivity;
+    });
+
+    // Sort repositories
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'stars':
+          return b.stars - a.stars;
+        case 'recent':
+          const activityOrder = { active: 3, medium: 2, inactive: 1 };
+          return activityOrder[b.charging] - activityOrder[a.charging];
+        case 'issues':
+          return b.issues - a.issues;
+        case 'name':
+          return a.name.localeCompare(b.name);
+        default:
+          return 0;
+      }
+    });
+
+    return filtered;
+  }, [selectedLanguages, starRange, selectedActivities, sortBy]);
+
+  const handleLanguageChange = (language: string, checked: boolean) => {
+    if (checked) {
+      setSelectedLanguages(prev => [...prev, language]);
+    } else {
+      setSelectedLanguages(prev => prev.filter(lang => lang !== language));
+    }
+  };
+
+  const handleActivityChange = (activity: string, checked: boolean) => {
+    if (checked) {
+      setSelectedActivities(prev => [...prev, activity]);
+    } else {
+      setSelectedActivities(prev => prev.filter(act => act !== activity));
+    }
+  };
+
+  const clearFilters = () => {
+    setSelectedLanguages(['JavaScript', 'TypeScript', 'Python', 'Rust', 'Go']);
+    setStarRange('all');
+    setSelectedActivities(['active', 'medium']);
+    setSortBy('stars');
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -212,21 +283,26 @@ const Hacktoberfest = () => {
           <div className="lg:col-span-7">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-foreground">
-                {hacktoberfestRepos.length} repositories found
+                {filteredRepos.length} repositories found
               </h2>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Sort by:</span>
-                <select className="bg-background border border-border rounded-lg px-3 py-1 text-sm">
-                  <option>Most Stars</option>
-                  <option>Recently Updated</option>
-                  <option>Most Issues</option>
-                  <option>Name</option>
+                <select 
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="bg-background border border-border rounded-lg px-3 py-1 text-sm"
+                  aria-label="Sort repositories"
+                >
+                  <option value="stars">Most Stars</option>
+                  <option value="recent">Recently Updated</option>
+                  <option value="issues">Most Issues</option>
+                  <option value="name">Name</option>
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6 mb-12 max-w-4xl mx-auto">
-              {hacktoberfestRepos.map((repo, index) => (
+              {filteredRepos.map((repo, index) => (
                 <div 
                   key={repo.name} 
                   className={`transform transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 animate-slide-up cursor-pointer ${
