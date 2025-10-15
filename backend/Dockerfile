@@ -21,7 +21,7 @@ COPY requirements.txt .
 
 # Install heavy packages first (prebuilt wheels)
 # Example: torch, sentence-transformers, numpy, etc.
-RUN pip install --no-cache-dir torch sentence-transformers numpy
+RUN pip install --no-cache-dir torch numpy
 
 # Install remaining dependencies from requirements.txt excluding preinstalled
 RUN pip install --no-cache-dir -r requirements.txt
