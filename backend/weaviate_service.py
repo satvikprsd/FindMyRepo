@@ -1,4 +1,3 @@
-from sentence_transformers import SentenceTransformer
 import weaviate
 from weaviate.classes.init import Auth
 from dotenv import load_dotenv
